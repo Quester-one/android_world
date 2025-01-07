@@ -307,7 +307,7 @@ def get_controller(
   config = config_classes.AndroidEnvConfig(
       task=config_classes.FilesystemTaskConfig(
           path=_write_default_task_proto()
-      ),
+      ),#在'/tmp/default.textproto'写入一个空任务，都是初始化一个空的
       simulator=config_classes.EmulatorConfig(
           emulator_launcher=config_classes.EmulatorLauncherConfig(
               emulator_console_port=console_port,

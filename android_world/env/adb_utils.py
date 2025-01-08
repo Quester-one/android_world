@@ -977,7 +977,7 @@ def install_apk(
   """
   if not os.path.exists(apk_location):
     raise ValueError('APK does not exist.')
-  issue_generic_request(['install', apk_location], env, timeout_sec=30.0)
+  issue_generic_request(['install', apk_location], env, timeout_sec=100.0)
 
 
 def check_airplane_mode(env: env_interface.AndroidEnvInterface) -> bool:

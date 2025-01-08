@@ -258,7 +258,7 @@ class Gpt4Wrapper(LlmWrapper, MultimodalLlmWrapper):
       self,
       model_name: str,
       max_retry: int = 3,
-      temperature: float = 0.0,
+      temperature: float = 1.0,
   ):
     if 'OPENAI_API_KEY' not in os.environ:
       raise RuntimeError('OpenAI API key not set.')

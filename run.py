@@ -38,27 +38,31 @@ from android_world.agents import seeact
 from android_world.agents import t3a
 from android_world.env import env_launcher
 from android_world.env import interface
+from config_private import OPENAI_API_KEY, http_proxy, https_proxy
 
 logging.set_verbosity(logging.WARNING)
 
+# os.environ["http_proxy"] = http_proxy
+# os.environ["https_proxy"] = https_proxy
 os.environ['GRPC_VERBOSITY'] = 'ERROR'  # Only show errors
 os.environ['GRPC_TRACE'] = 'none'  # Disable tracing
+os.environ['OPENAI_API_KEY'] = OPENAI_API_KEY
 
 
 def _find_adb_directory() -> str:
-  """Returns the directory where adb is located."""
-  potential_paths = [
-      os.path.expanduser('~/Library/Android/sdk/platform-tools/adb'),
-      os.path.expanduser('~/Android/Sdk/platform-tools/adb'),
-  ]
-  for path in potential_paths:
-    if os.path.isfile(path):
-      return path
-  raise EnvironmentError(
-      'adb not found in the common Android SDK paths. Please install Android'
-      " SDK and ensure adb is in one of the expected directories. If it's"
-      ' already installed, point to the installed location.'
-  )
+    """Returns the directory where adb is located."""
+    potential_paths = [
+        os.path.expanduser('/usr/lib/android-sdk/platform-tools/adb'),
+        # os.path.expanduser('~/Android/Sdk/platform-tools/adb'),
+    ]
+    for path in potential_paths:
+        if os.path.isfile(path):
+            return path
+    raise EnvironmentError(
+        'adb not found in the common Android SDK paths. Please install Android'
+        " SDK and ensure adb is in one of the expected directories. If it's"
+        ' already installed, point to the installed location.'
+    )
 
 
 _ADB_PATH = flags.DEFINE_string(
@@ -102,7 +106,8 @@ _TASK_RANDOM_SEED = flags.DEFINE_integer(
 
 _TASKS = flags.DEFINE_list(
     'tasks',
-    None,
+    ["AudioRecorderRecordAudio", "AudioRecorderRecordAudioWithFileName", "ContactsAddContact",
+     "ContactsNewContactDraft", "ClockTimerEntry"],
     'List of specific tasks to run in the given suite family. If None, run all'
     ' tasks in the suite family.',
 )
@@ -122,7 +127,8 @@ _CHECKPOINT_DIR = flags.DEFINE_string(
 )
 _OUTPUT_PATH = flags.DEFINE_string(
     'output_path',
-    os.path.expanduser('~/android_world/runs'),
+    # os.path.expanduser('~/android_world/runs'),
+    os.path.expanduser('/mnt/d/code/data/android_world_reward_bench'),
     'The path to save results to if not resuming from a checkpoint is not'
     ' provided.',
 )
@@ -130,13 +136,20 @@ _OUTPUT_PATH = flags.DEFINE_string(
 # Agent specific.
 _AGENT_NAME = flags.DEFINE_string('agent_name', 'm3a_gpt4v', help='Agent name.')
 
+_TEMPERATURE = flags.DEFINE_float(
+    'temperature',
+    0.2,  # 默认温度
+    'Temperature parameter for controlling the randomness of the model outputs. '
+    'Values range from 0.0 to 1.0, where lower values make the model more deterministic, '
+    'and higher values make it more random.',
+)
+
 _FIXED_TASK_SEED = flags.DEFINE_boolean(
     'fixed_task_seed',
     False,
     'Whether to use the same task seed when running multiple task combinations'
     ' (n_task_combinations > 1).',
 )
-
 
 # MiniWoB is very lightweight and new screens/View Hierarchy load quickly.
 _MINIWOB_TRANSITION_PAUSE = 0.2
@@ -151,102 +164,105 @@ _MINIWOB_ADDITIONAL_GUIDELINES = [
 
 
 def _get_agent(
-    env: interface.AsyncEnv,
-    family: str | None = None,
+        env: interface.AsyncEnv,
+        family: str | None = None,
 ) -> base_agent.EnvironmentInteractingAgent:
-  """Gets agent."""
-  print('Initializing agent...')
-  agent = None
-  if _AGENT_NAME.value == 'human_agent':
-    agent = human_agent.HumanAgent(env)
-  elif _AGENT_NAME.value == 'random_agent':
-    agent = random_agent.RandomAgent(env)
-  # Gemini.
-  elif _AGENT_NAME.value == 'm3a_gemini_gcp':
-    agent = m3a.M3A(
-        env, infer.GeminiGcpWrapper(model_name='gemini-1.5-pro-latest')
-    )
-  elif _AGENT_NAME.value == 't3a_gemini_gcp':
-    agent = t3a.T3A(
-        env, infer.GeminiGcpWrapper(model_name='gemini-1.5-pro-latest')
-    )
-  # GPT.
-  elif _AGENT_NAME.value == 't3a_gpt4':
-    agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4-turbo-2024-04-09'))
-  elif _AGENT_NAME.value == 'm3a_gpt4v':
-    agent = m3a.M3A(env, infer.Gpt4Wrapper('gpt-4-turbo-2024-04-09'))
-  # SeeAct.
-  elif _AGENT_NAME.value == 'seeact':
-    agent = seeact.SeeAct(env)
+    """Gets agent."""
+    print('Initializing agent...')
+    agent = None
+    if _AGENT_NAME.value == 'human_agent':
+        agent = human_agent.HumanAgent(env)
+    elif _AGENT_NAME.value == 'random_agent':
+        agent = random_agent.RandomAgent(env)
+    # Gemini.
+    elif _AGENT_NAME.value == 'm3a_gemini_gcp':
+        agent = m3a.M3A(
+            env, infer.GeminiGcpWrapper(model_name='gemini-1.5-pro-latest')
+        )
+    elif _AGENT_NAME.value == 't3a_gemini_gcp':
+        agent = t3a.T3A(
+            env, infer.GeminiGcpWrapper(model_name='gemini-1.5-pro-latest')
+        )
+    # GPT.
+    elif _AGENT_NAME.value == 't3a_gpt4':
+        agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4-turbo-2024-04-09'))
+    elif _AGENT_NAME.value == 'm3a_gpt4v':
+        # agent = m3a.M3A(env, infer.Gpt4Wrapper('gpt-4-turbo-2024-04-09'))
+        # agent = m3a.M3A(env, infer.Gpt4Wrapper('gemini-1.5-pro'))
+        print("temperature:", _TEMPERATURE.value)
+        agent = m3a.M3A(env, infer.Gpt4Wrapper(model_name='gpt-4-turbo-2024-04-09', temperature=_TEMPERATURE.value))
+    # SeeAct.
+    elif _AGENT_NAME.value == 'seeact':
+        agent = seeact.SeeAct(env)
 
-  if not agent:
-    raise ValueError(f'Unknown agent: {_AGENT_NAME.value}')
+    if not agent:
+        raise ValueError(f'Unknown agent: {_AGENT_NAME.value}')
 
-  if (
-      agent.name in ['M3A', 'T3A', 'SeeAct']
-      and family
-      and family.startswith('miniwob')
-      and hasattr(agent, 'set_task_guidelines')
-  ):
-    agent.set_task_guidelines(_MINIWOB_ADDITIONAL_GUIDELINES)
-  agent.name = _AGENT_NAME.value
+    if (
+            agent.name in ['M3A', 'T3A', 'SeeAct']
+            and family
+            and family.startswith('miniwob')
+            and hasattr(agent, 'set_task_guidelines')
+    ):
+        agent.set_task_guidelines(_MINIWOB_ADDITIONAL_GUIDELINES)
+    agent.name = _AGENT_NAME.value
 
-  return agent
+    return agent
 
 
 def _main() -> None:
-  """Runs eval suite and gets rewards back."""
-  env = env_launcher.load_and_setup_env(
-      console_port=_DEVICE_CONSOLE_PORT.value,
-      emulator_setup=_EMULATOR_SETUP.value,
-      adb_path=_ADB_PATH.value,
-  )
+    """Runs eval suite and gets rewards back."""
+    env = env_launcher.load_and_setup_env(
+        console_port=_DEVICE_CONSOLE_PORT.value,
+        emulator_setup=_EMULATOR_SETUP.value,
+        adb_path=_ADB_PATH.value,
+    )
 
-  n_task_combinations = _N_TASK_COMBINATIONS.value
-  task_registry = registry.TaskRegistry()
-  suite = suite_utils.create_suite(
-      task_registry.get_registry(family=_SUITE_FAMILY.value),
-      n_task_combinations=n_task_combinations,
-      seed=_TASK_RANDOM_SEED.value,
-      tasks=_TASKS.value,
-      use_identical_params=_FIXED_TASK_SEED.value,
-  )
-  suite.suite_family = _SUITE_FAMILY.value
+    n_task_combinations = _N_TASK_COMBINATIONS.value
+    task_registry = registry.TaskRegistry()
+    suite = suite_utils.create_suite(
+        task_registry.get_registry(family=_SUITE_FAMILY.value),
+        n_task_combinations=n_task_combinations,
+        seed=_TASK_RANDOM_SEED.value,
+        tasks=_TASKS.value,
+        use_identical_params=_FIXED_TASK_SEED.value,
+    )
+    suite.suite_family = _SUITE_FAMILY.value
 
-  agent = _get_agent(env, _SUITE_FAMILY.value)
+    agent = _get_agent(env, _SUITE_FAMILY.value)
 
-  if _SUITE_FAMILY.value.startswith('miniwob'):
-    # MiniWoB pages change quickly, don't need to wait for screen to stabilize.
-    agent.transition_pause = _MINIWOB_TRANSITION_PAUSE
-  else:
-    agent.transition_pause = None
+    if _SUITE_FAMILY.value.startswith('miniwob'):
+        # MiniWoB pages change quickly, don't need to wait for screen to stabilize.
+        agent.transition_pause = _MINIWOB_TRANSITION_PAUSE
+    else:
+        agent.transition_pause = None
 
-  if _CHECKPOINT_DIR.value:
-    checkpoint_dir = _CHECKPOINT_DIR.value
-  else:
-    checkpoint_dir = checkpointer_lib.create_run_directory(_OUTPUT_PATH.value)
+    if _CHECKPOINT_DIR.value:
+        checkpoint_dir = _CHECKPOINT_DIR.value
+    else:
+        checkpoint_dir = checkpointer_lib.create_run_directory(_OUTPUT_PATH.value)
 
-  print(
-      f'Starting eval with agent {_AGENT_NAME.value} and writing to'
-      f' {checkpoint_dir}'
-  )
-  suite_utils.run(
-      suite,
-      agent,
-      checkpointer=checkpointer_lib.IncrementalCheckpointer(checkpoint_dir),
-      demo_mode=False,
-  )
-  print(
-      f'Finished running agent {_AGENT_NAME.value} on {_SUITE_FAMILY.value}'
-      f' family. Wrote to {checkpoint_dir}.'
-  )
-  env.close()
+    print(
+        f'Starting eval with agent {_AGENT_NAME.value} and writing to'
+        f' {checkpoint_dir}'
+    )
+    suite_utils.run(
+        suite,
+        agent,
+        checkpointer=checkpointer_lib.IncrementalCheckpointer(checkpoint_dir),  # 结果保存的位置
+        demo_mode=False,
+    )  # 从这里进入开始跑数据
+    print(
+        f'Finished running agent {_AGENT_NAME.value} on {_SUITE_FAMILY.value}'
+        f' family. Wrote to {checkpoint_dir}.'
+    )
+    env.close()
 
 
 def main(argv: Sequence[str]) -> None:
-  del argv
-  _main()
+    del argv
+    _main()
 
 
 if __name__ == '__main__':
-  app.run(main)
+    app.run(main)

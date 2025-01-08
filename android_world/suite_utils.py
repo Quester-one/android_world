@@ -232,7 +232,7 @@ def _run_task(
   Raises:
     ValueError: If step data was not as expected.
   """
-  start = time.time()
+  start = time.time()#以下代码和mini里面的类似了
   try:
     task.initialize_task(env)
     print(f'Running task {task.name} with goal "{task.goal}"')
@@ -375,7 +375,7 @@ def _run_task_suite(
         print(f'Skipping already processed task {instance_name}')
         continue
 
-      episode = _run_task(instance, run_episode, env, demo_mode=demo_mode)
+      episode = _run_task(instance, run_episode, env, demo_mode=demo_mode)#从这里开始跑，每次都是重新开始
       episode[constants.EpisodeConstants.AGENT_NAME] = agent_name
       episode[constants.EpisodeConstants.INSTANCE_ID] = i
       checkpointer.save_episodes([episode], instance_name)

@@ -92,9 +92,9 @@ def _main() -> None:
         emulator_setup=_EMULATOR_SETUP.value,  # False,是否下载软件
         adb_path=_ADB_PATH.value,
     )
-    env.reset(go_home=True)
+    env.reset(go_home=True)#建立环境并初始化
     task_registry = registry.TaskRegistry()
-    aw_registry = task_registry.get_registry(task_registry.ANDROID_WORLD_FAMILY)
+    aw_registry = task_registry.get_registry(task_registry.ANDROID_WORLD_FAMILY)#能看到androidworld的所有任务
     if _TASK.value:
         if _TASK.value not in aw_registry:
             raise ValueError('Task {} not found in registry.'.format(_TASK.value))
@@ -103,7 +103,7 @@ def _main() -> None:
         task_type: Type[task_eval.TaskEval] = random.choice(
             list(aw_registry.values())
         )
-    params = task_type.generate_random_params()
+    params = task_type.generate_random_params()#产生一个任务的随机参数
     task = task_type(params)
     task.initialize_task(env)
     agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4-turbo-2024-04-09'))

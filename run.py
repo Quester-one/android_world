@@ -79,7 +79,7 @@ _EMULATOR_SETUP = flags.DEFINE_boolean(
 )
 _DEVICE_CONSOLE_PORT = flags.DEFINE_integer(
     'console_port',
-    5554,
+    5556,
     'The console port of the running Android device. This can usually be'
     ' retrieved by looking at the output of `adb devices`. In general, the'
     ' first connected device is port 5554, the second is 5556, and'
@@ -115,6 +115,18 @@ _N_TASK_COMBINATIONS = flags.DEFINE_integer(
     'n_task_combinations',
     1,
     'Number of task instances to run for each task template.',
+)
+
+_GRPC_PORT = flags.DEFINE_integer(
+    'grpc_port',
+    8556,
+    'grpc port',
+)
+
+_ADB_SERVER_PORT = flags.DEFINE_integer(
+    'adb_server_port',
+    5056,
+    'adb server port',
 )
 
 _CHECKPOINT_DIR = flags.DEFINE_string(
@@ -190,7 +202,7 @@ def _get_agent(
         # agent = m3a.M3A(env, infer.Gpt4Wrapper('gpt-4-turbo-2024-04-09'))
         # agent = m3a.M3A(env, infer.Gpt4Wrapper('gemini-1.5-pro'))
         print("temperature:", _TEMPERATURE.value)
-        agent = m3a.M3A(env, infer.Gpt4Wrapper(model_name='gpt-4-turbo-2024-04-09', temperature=_TEMPERATURE.value))
+        agent = m3a.M3A(env, infer.Gpt4Wrapper(model_name='gemini-1.5-pro', temperature=_TEMPERATURE.value))
     # SeeAct.
     elif _AGENT_NAME.value == 'seeact':
         agent = seeact.SeeAct(env)
@@ -216,6 +228,9 @@ def _main() -> None:
         console_port=_DEVICE_CONSOLE_PORT.value,
         emulator_setup=_EMULATOR_SETUP.value,
         adb_path=_ADB_PATH.value,
+        grpc_port=_GRPC_PORT.value,
+        adb_server_port=_ADB_SERVER_PORT.value
+
     )
 
     n_task_combinations = _N_TASK_COMBINATIONS.value

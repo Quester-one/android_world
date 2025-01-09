@@ -301,6 +301,7 @@ def get_controller(
     console_port: int = 5554,
     adb_path: str = DEFAULT_ADB_PATH,
     grpc_port: int = 8554,
+    adb_server_port: int = 5037,
 ) -> AndroidWorldController:
   """Creates a controller by connecting to an existing Android environment."""
 
@@ -313,8 +314,10 @@ def get_controller(
               emulator_console_port=console_port,
               adb_port=console_port + 1,
               grpc_port=grpc_port,
+
           ),
-          adb_controller=config_classes.AdbControllerConfig(adb_path=adb_path),
+          adb_controller=config_classes.AdbControllerConfig(adb_path=adb_path,
+                                                            adb_server_port=adb_server_port),
       ),
   )
   android_env_instance = loader.load(config)

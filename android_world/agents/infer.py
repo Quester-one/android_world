@@ -252,12 +252,12 @@ class Gpt4Wrapper(LlmWrapper, MultimodalLlmWrapper):
     model: GPT model to use based on if it is multimodal.
   """
 
-  RETRY_WAITING_SECONDS = 20
+  RETRY_WAITING_SECONDS = 1
 
   def __init__(
       self,
       model_name: str,
-      max_retry: int = 3,
+      max_retry: int = 20,
       temperature: float = 1.0,
   ):
     if 'OPENAI_API_KEY' not in os.environ:

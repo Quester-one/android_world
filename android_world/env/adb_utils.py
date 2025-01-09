@@ -652,11 +652,11 @@ def launch_app(
   if activity is None:
     #  If the app name is not in the mapping, assume it is a package name.
     response = issue_generic_request(
-        ['shell', 'monkey', '-p', app_name, '1'], env, timeout_sec=5
+        ['shell', 'monkey', '-p', app_name, '1'], env, timeout_sec=100
     )
     logging.info('Launching app by package name, response: %r', response)
     return app_name
-  start_activity(activity, extra_args=[], env=env, timeout_sec=5)
+  start_activity(activity, extra_args=[], env=env, timeout_sec=100)
   return app_name
 
 

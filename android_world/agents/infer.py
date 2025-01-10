@@ -108,7 +108,7 @@ class GeminiGcpWrapper(LlmWrapper, MultimodalLlmWrapper):
       self,
       model_name: str | None = None,
       max_retry: int = 3,
-      temperature: float = 0.0,
+      temperature: float = 1.0,
       top_p: float = 0.95,
       enable_safety_checks: bool = True,
   ):

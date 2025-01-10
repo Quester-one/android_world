@@ -297,7 +297,7 @@ def display_prompt(
 def execute_openai_request(
     messages_payload: list[dict[str, Any]],
     model: str = _GPT_TURBO,
-    temperature: float = 0.0,
+    temperature: float = 1.0,
     max_tokens: int = 4096,
 ) -> dict[str, Any]:
   """Executes a request to the OpenAI API with the given JSON input.

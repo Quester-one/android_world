@@ -106,8 +106,8 @@ _TASK_RANDOM_SEED = flags.DEFINE_integer(
 
 _TASKS = flags.DEFINE_list(
     'tasks',
-    ["AudioRecorderRecordAudio", "AudioRecorderRecordAudioWithFileName", "ContactsAddContact",
-     "ContactsNewContactDraft", "ClockTimerEntry"],
+    ['ExpenseAddMultiple','ExpenseAddMultipleFromGallery','MarkorAddNoteHeader','OsmAndMarker',
+     'RecipeAddMultipleRecipesFromImage','SimpleDrawProCreateDrawing','OpenAppTaskEval','TurnOffWifiAndTurnOnBluetooth'],
     'List of specific tasks to run in the given suite family. If None, run all'
     ' tasks in the suite family.',
 )

@@ -106,8 +106,10 @@ _TASK_RANDOM_SEED = flags.DEFINE_integer(
 
 _TASKS = flags.DEFINE_list(
     'tasks',
-    ['ExpenseAddMultiple','ExpenseAddMultipleFromGallery','MarkorAddNoteHeader','OsmAndMarker',
-     'RecipeAddMultipleRecipesFromImage','SimpleDrawProCreateDrawing','OpenAppTaskEval','TurnOffWifiAndTurnOnBluetooth'],
+    ['AudioRecorderRecordAudio','AudioRecorderRecordAudioWithFileName',
+     'ContactsAddContact','ContactsNewContactDraft','ClockTimerEntry',
+     'ExpenseAddMultipleFromGallery','MarkorAddNoteHeader','OsmAndMarker',
+     'SimpleDrawProCreateDrawing','OpenAppTaskEval','TurnOffWifiAndTurnOnBluetooth'],
     'List of specific tasks to run in the given suite family. If None, run all'
     ' tasks in the suite family.',
 )
@@ -202,7 +204,8 @@ def _get_agent(
         # agent = m3a.M3A(env, infer.Gpt4Wrapper('gpt-4-turbo-2024-04-09'))
         # agent = m3a.M3A(env, infer.Gpt4Wrapper('gemini-1.5-pro'))
         print("temperature:", _TEMPERATURE.value)
-        agent = m3a.M3A(env, infer.Gpt4Wrapper(model_name='gemini-1.5-pro', temperature=_TEMPERATURE.value))
+        agent = m3a.M3A(env, infer.Gpt4Wrapper(model_name='gemini-1.5-flash-latest', temperature=_TEMPERATURE.value))
+        # agent = m3a.M3A(env, infer.Gpt4Wrapper(model_name='Qwen2-VL-72B-Instruct', temperature=_TEMPERATURE.value))
     # SeeAct.
     elif _AGENT_NAME.value == 'seeact':
         agent = seeact.SeeAct(env)
